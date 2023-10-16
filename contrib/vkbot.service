@@ -1,0 +1,21 @@
+[Unit]
+Description=Uvicorn systemd service.
+After=network.target
+
+[Service]
+StartLimitInterval=0
+Type=simple
+ExecStart=/usr/local/vkbot/bin/uvicorn vkbot.main:app --port 3001 --host 0.0.0.0 --log-config /usr/local/etc/vkbot/log.ini --env-file /usr/local/etc/vkbot/conf.env
+User=vkbot
+Group=vkbot
+WorkingDirectory=/var/run/vkbot
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+RestartSec=1
+Restart=always
+
+
+[Install]
+WantedBy=multi-user.target

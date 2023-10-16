@@ -1,0 +1,13 @@
+version: '3.0'
+
+services:
+  vkbot:
+    build: .
+    ports:
+      - '3001:3001'
+    expose:
+      - 3001
+    command: sh "./docker-entrypoint.sh"
+    restart: always
+    volumes:
+      - ./:/app
