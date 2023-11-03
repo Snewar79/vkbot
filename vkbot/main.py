@@ -22,15 +22,20 @@ def decorator_function(func):
 
 class VkBot:
     api = None
+    auth_token = None
 
     @decorator_function
-    def __init__(self):
+    def __init__(self, auth_token, join_txt, order_txt):
+        self.auth_token = auth_token
+        self.join_txt = join_txt
+        self.order_txt = order_txt
         self.makeAuth()
         self.sendInitMessage()
 
     @decorator_function
     def makeAuth(self):
-        access_token = config["access_token"]
+        access_token = self.auth_token
+        logging.info(access_token)
         self.api = vk.API(access_token=access_token)
 
     @decorator_function
@@ -73,7 +78,7 @@ class VkBot:
         if not name:
             return
         
-        message = config["JOINING_A_GROUP_TEXT"].format(name=name)
+        message = self.join_txt.format(name=name)
         self.sendMessage(user_id, message=message)
 
     @decorator_function
@@ -86,7 +91,7 @@ class VkBot:
         if not name:
             return
         
-        message = config["PLACING_AN_ORDER_TEXT"].format(name=name)
+        message = self.order_txt.format(name=name)
         self.sendMessage(user_id, message=message)
 
     @decorator_function
@@ -103,7 +108,20 @@ class VkBot:
         
         return False
 
-bot = VkBot()
+bot_1 = VkBot(config["access_token_bot_1"], config["JOINING_A_GROUP_1_TEXT"], config["PLACING_AN_ORDER_1_TEXT"])
+bot_2 = VkBot(config["access_token_bot_2"], config["JOINING_A_GROUP_2_TEXT"], config["PLACING_AN_ORDER_2_TEXT"])
+
+
+def get_gid(body):
+    gid = None
+    try:
+        gid = body["group_id"]
+        return gid
+    except Exception as e:
+        pass
+
+    return -1
+
 
 @app.post("/callback")
 async def post_callback(request: Request):
@@ -120,14 +138,20 @@ async def post_callback(request: Request):
         )
     
     logging.info(body)
-    
-    if bot.isGroupJoinType(body):
-        logging.info("is it group join request, lets send a hello message")
-        bot.answerToJoin(body)
 
-    if bot.isOrderType(body):
-        logging.info("is it order request, lets send a help message")
-        bot.answerToOrder(body)
+    if get_gid(body) == 221995475:
+        if bot_1.isGroupJoinType(body):
+            logging.info("is it group join request, lets send a hello message")
+            bot_1.answerToJoin(body)
+
+        if bot_1.isOrderType(body):
+            logging.info("is it order request, lets send a help message")
+            bot_1.answerToOrder(body)
+
+    if get_gid(body) == 218860354:
+        if bot_2.isGroupJoinType(body):
+            logging.info("is it group join request, lets send a hello message")
+            bot_2.answerToJoin(body)
 
     return Response(
             content=b'ok',
